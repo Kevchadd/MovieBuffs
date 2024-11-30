@@ -1,5 +1,8 @@
 package com.example.moviebuffs.ui
 
+import android.R.attr.onClick
+import android.provider.ContactsContract.CommonDataKinds.Photo
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
@@ -46,11 +51,11 @@ import com.example.moviebuffs.ui.theme.MovieBuffsTheme
 
 @Composable
 fun HomeScreen(
-    moviesUiState: MoviesUiState,retryAction: () -> Unit, modifier: Modifier = Modifier
+    moviesUiState: MoviesUiState,retryAction: () -> Unit,onClick:(MoviesPhoto) -> Unit, modifier: Modifier = Modifier
 ) {
     when (moviesUiState){
         is MoviesUiState.Loading -> LoadingScreen (modifier = modifier.fillMaxSize())
-        is MoviesUiState.Success -> MoviesList(photos = moviesUiState.photos, modifier = modifier.fillMaxWidth())
+        is MoviesUiState.Success -> MoviesList(photos = moviesUiState.photos,onClick = onClick, modifier = modifier.fillMaxWidth())
         is MoviesUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
     }
 
@@ -60,16 +65,17 @@ fun HomeScreen(
 
 
 @Composable
-fun MoviesList(photos: List<MoviesPhoto>, /*onClick:(MoviesPhoto) -> Unit*/ modifier: Modifier = Modifier,
+fun MoviesList(photos: List<MoviesPhoto>, onClick:(MoviesPhoto) -> Unit,modifier: Modifier = Modifier,
 
 ){
-    LazyColumn(
+    LazyColumn( modifier = modifier
 
        ) {
 
         items(items = photos, key = { photo -> photo.poster }) { photo ->
             MoviesPhotoCard(
-                photo,
+                photo = photo ,
+                onItemClick = onClick,
                 modifier = modifier
                     .fillMaxWidth(),
             )
@@ -79,14 +85,22 @@ fun MoviesList(photos: List<MoviesPhoto>, /*onClick:(MoviesPhoto) -> Unit*/ modi
 }
 
 @Composable
-fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
+fun MoviesPhotoDetailScreen(
+    selectedMovie: MoviesPhoto,
+    onBackPressed: ()-> Unit,
     modifier: Modifier = Modifier
 
 ){
-    Column (modifier = Modifier.padding(8.dp)){
+    BackHandler {
+        onBackPressed()
+    }
+    Column (modifier = Modifier.padding(8.dp)
+        .verticalScroll(state = rememberScrollState())
+
+    ){
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(photo.bigImage)
+                .data(selectedMovie.bigImage)
                 .crossfade(true)
                 .build(),
             error = painterResource(R.drawable.ic_broken_image),
@@ -98,7 +112,7 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
         )
         Spacer(modifier = modifier.height(16.dp))
         Text(
-            text = photo.title,
+            text = selectedMovie.title,
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold
         )
@@ -113,7 +127,7 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
                 modifier = Modifier.padding(end = 2.dp)
             )
             Text(
-                text = photo.contentRating + " | " + photo.length,
+                text ="${selectedMovie.contentRating} | ${selectedMovie.length}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -130,7 +144,7 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
                 modifier = Modifier.padding(end = 2.dp)
             )
             Text(
-                text = photo.releaseDate ,
+                text = selectedMovie.releaseDate ,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -146,7 +160,7 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
                 modifier = Modifier.padding(end = 2.dp)
             )
             Text(
-                text = photo.reviewScore,
+                text = selectedMovie.reviewScore,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -154,7 +168,7 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
 
         Spacer(modifier = modifier.height(16.dp))
         Text(
-            text = photo.description,
+            text = selectedMovie.description,
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -172,12 +186,13 @@ fun MoviesPhotoDetailScreen(photo: MoviesPhoto,
 
 
 @Composable
-fun MoviesPhotoCard(photo: MoviesPhoto, /*onItemClick:(MoviesPhoto) ->Unit*/ modifier: Modifier = Modifier) {
+fun MoviesPhotoCard(photo: MoviesPhoto, onItemClick:(MoviesPhoto) ->Unit, modifier: Modifier = Modifier) {
     Card(
         elevation = cardElevation(defaultElevation = 4.dp),
         modifier = modifier.padding(top = 8.dp)
             .fillMaxWidth()
-            .height(180.dp)
+            .height(180.dp),
+        onClick = { onItemClick(photo) }
     ) {
         Row(modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -288,7 +303,7 @@ fun ResultScreenPreview() {
 @Composable
 fun MoviesPhotoCardPreview() {
     val mockData = MoviesPhoto(
-        poster = "android.resource:moviebuffs//drawable-nodpi/mario",
+        poster = "android.resource://app/src/main/res/drawable-nodpi.mario",
         title = "Mario",
         description = "While working underground to fix a water main, Brooklyn plumbers-and brothers-Mario and Luigi are transported down a mysterious pipe and wander into a magical new world. But when the brothers are separated, Mario embarks on an epic quest to find Luigi.",
         releaseDate = "Apr 5, 2023",
@@ -299,7 +314,7 @@ fun MoviesPhotoCardPreview() {
     )
 
     MovieBuffsTheme {
-        MoviesPhotoCard(photo = mockData)
+        MoviesPhotoCard(photo = mockData, onItemClick = {})
     }
 }
 
@@ -308,7 +323,7 @@ fun MoviesPhotoCardPreview() {
 @Composable
 fun MoviesPhotoDetailScreenPreview() {
     val mockData = MoviesPhoto(
-        poster = "android.resource:moviebuffs//drawable-nodpi/mario",
+        poster = "android.resource://MovieBuffs//drawable-nodpi/mario",
         title = "Mario",
         description = "While working underground to fix a water main, Brooklyn plumbers-and brothers-Mario and Luigi are transported down a mysterious pipe and wander into a magical new world. But when the brothers are separated, Mario embarks on an epic quest to find Luigi.",
         releaseDate = "Apr 5, 2023",
@@ -319,6 +334,6 @@ fun MoviesPhotoDetailScreenPreview() {
     )
 
     MovieBuffsTheme {
-        MoviesPhotoDetailScreen(photo = mockData)
+        MoviesPhotoDetailScreen(selectedMovie = mockData, onBackPressed = {})
     }
 }
