@@ -252,6 +252,28 @@ fun MoviesPhotoCard(photo: MoviesPhoto, onItemClick:(MoviesPhoto) ->Unit, modifi
 
 
 
+@Composable
+fun MoviesPhotoListAndDetail(
+    photo: List<MoviesPhoto>,
+    onClick: (MoviesPhoto) -> Unit,
+    selectedMovie: MoviesPhoto,
+    modifier: Modifier = Modifier
+){
+    Row(modifier = modifier){
+        MoviesList(
+            photos = photo,
+            onClick = onClick,
+            modifier = Modifier.weight(2f)
+                .padding(start = 16.dp, end = 16.dp)
+        )
+        MoviesPhotoDetailScreen(
+            selectedMovie = selectedMovie,
+            onBackPressed = {},
+            modifier = Modifier.weight(3f)
+        )
+    }
+}
+
 
 
 @Composable

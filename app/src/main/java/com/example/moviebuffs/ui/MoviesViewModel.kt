@@ -21,13 +21,11 @@ sealed interface MoviesUiState {
     object Loading : MoviesUiState
 }
 
+
 data class UiState(
     val currentMovie: MoviesPhoto?,
     val isShowingListPage: Boolean = true
 )
-
-
-
 
 class MoviesViewModel : ViewModel() {
 

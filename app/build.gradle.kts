@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.okhttp)
 
+    implementation("androidx.compose.material3:material3-window-size-class")
 
     implementation(libs.kotlinx.serialization.json.v160)
 
