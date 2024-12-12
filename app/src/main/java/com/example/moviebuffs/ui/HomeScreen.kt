@@ -86,38 +86,38 @@ fun MoviesApp(
         else -> MovieContentType.LIST_ONLY
     }
 
+    // Check if the state is Success and retrieve photos
+    if (moviesUiState is MoviesUiState.Success) {
+        val photos = moviesUiState.photos
 
-    when (moviesUiState) {
-        is MoviesUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        is MoviesUiState.Error -> ErrorScreen(retryAction = {}, modifier = modifier.fillMaxSize())
-        is MoviesUiState.Success -> {
-            val photos = moviesUiState.photos
-            if (contentType == MovieContentType.LIST_AND_DETAIL) {
-                // Show both list and detail views
-                MoviesPhotoListAndDetail(
-                    photo = photos,
-                    selectedMovie = uiState.currentMovie?:photos[0],
-                    onClick = {viewModel.updateCurrentMovie(it)},
+        if (contentType == MovieContentType.LIST_AND_DETAIL) {
+            // Show both list and detail views
+            MoviesPhotoListAndDetail(
+                photo = photos,
+                selectedMovie = uiState.currentMovie ?: photos[0],
+                onClick = { viewModel.updateCurrentMovie(it) },
+                modifier = modifier.fillMaxSize()
+            )
+        } else {
+            // Show only the list view
+            if (uiState.isShowingListPage) {
+                MoviesList(
+                    photos = photos,
+                    onClick = { photo ->
+                        viewModel.updateCurrentMovie(photo)
+                        viewModel.navigateToDetailsPage()
+                    },
                     modifier = modifier.fillMaxSize()
                 )
             } else {
-                // Show only the list view
-                if (uiState.isShowingListPage) {
-                    MoviesList(
-                        photos = photos,
-                        onClick = { photo ->
-                            viewModel.updateCurrentMovie(photo)
-                            viewModel.navigateToDetailsPage()                         },
-                        modifier = modifier.fillMaxSize()
-                    )
-                } else {
-                    MoviesPhotoDetailScreen(
-                        selectedMovie = uiState.currentMovie!!,
-                        onBackPressed = { })
+                MoviesPhotoDetailScreen(
+                    selectedMovie = uiState.currentMovie!!,
+                    onBackPressed = { viewModel.navigateToListPage() }
+                )
+            }
         }
     }
-        }}}
-
+}
 
 
 @Composable
