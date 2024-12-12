@@ -1,8 +1,6 @@
 package com.example.moviebuffs.ui
 
-import android.R.attr.onClick
 import android.app.Activity
-import android.provider.ContactsContract.CommonDataKinds.Photo
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +24,9 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -86,12 +82,10 @@ fun MoviesApp(
         else -> MovieContentType.LIST_ONLY
     }
 
-
     if (moviesUiState is MoviesUiState.Success) {
         val photos = moviesUiState.photos
 
         if (contentType == MovieContentType.LIST_AND_DETAIL) {
-
             MoviesPhotoListAndDetail(
                 photo = photos,
                 selectedMovie = uiState.currentMovie ?: photos[0],
@@ -150,7 +144,7 @@ fun MoviesPhotoDetailScreen(
     BackHandler {
         onBackPressed()
     }
-    Column (modifier = Modifier.padding(8.dp)
+    Column (modifier = modifier.padding(8.dp)
         .verticalScroll(state = rememberScrollState())
 
     ){
@@ -319,7 +313,7 @@ fun MoviesPhotoListAndDetail(
     Row(modifier = modifier){
         MoviesList(
             photos = photo,
-            onClick = {},
+            onClick = onClick,
             modifier = Modifier.weight(2f)
                 .padding(start = 16.dp, end = 16.dp)
         )
@@ -373,7 +367,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun ResultScreenPreview() {
-    MovieBuffsTheme() {
+    MovieBuffsTheme {
         ResultScreen("Placeholder result text")
     }
 }

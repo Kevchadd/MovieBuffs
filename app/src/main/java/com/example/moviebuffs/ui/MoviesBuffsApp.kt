@@ -71,6 +71,7 @@ fun MoviesTopAppBar(
     isShowingListPage: Boolean,
     modifier: Modifier = Modifier
 ) {
+
     TopAppBar(
         title = {
             Text(
