@@ -14,6 +14,7 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.moviebuffs.ui.HomeScreen
 import com.example.moviebuffs.ui.MoviesBuffsApp
 import com.example.moviebuffs.ui.MoviesBuffsApp
 import com.example.moviebuffs.ui.theme.MovieBuffsTheme
@@ -28,9 +29,9 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val windowSize = calculateWindowSizeClass(this)
                     MoviesBuffsApp(
-                        windowSize = windowSize.widthSizeClass
+                         windowSize = windowSize.widthSizeClass
 
-                    )
+                     )
                 }
             }
         }

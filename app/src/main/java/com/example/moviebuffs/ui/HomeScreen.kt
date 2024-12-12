@@ -1,6 +1,7 @@
 package com.example.moviebuffs.ui
 
 import android.R.attr.onClick
+import android.app.Activity
 import android.provider.ContactsContract.CommonDataKinds.Photo
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -31,7 +32,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -42,25 +47,76 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.moviebuffs.R
 import com.example.moviebuffs.ui.network.MoviesPhoto
 import com.example.moviebuffs.ui.theme.MovieBuffsTheme
+import com.example.moviebuffs.ui.utils.MovieContentType
 
 
 @Composable
 fun HomeScreen(
-    moviesUiState: MoviesUiState,retryAction: () -> Unit,onClick:(MoviesPhoto) -> Unit, modifier: Modifier = Modifier
+    moviesUiState: MoviesUiState, retryAction: () -> Unit, onClick: (MoviesPhoto) -> Unit, modifier: Modifier = Modifier
 ) {
-    when (moviesUiState){
-        is MoviesUiState.Loading -> LoadingScreen (modifier = modifier.fillMaxSize())
-        is MoviesUiState.Success -> MoviesList(photos = moviesUiState.photos,onClick = onClick, modifier = modifier.fillMaxWidth())
+    when (moviesUiState) {
+        is MoviesUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+        is MoviesUiState.Success -> MoviesApp(moviesUiState, onClick, modifier)
         is MoviesUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
     }
-
 }
 
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+fun MoviesApp(
+    moviesUiState: MoviesUiState,
+    onClick: (MoviesPhoto) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val viewModel: MoviesViewModel = viewModel()
+    val uiState = viewModel.uiState.collectAsState().value
+    val windowSize = calculateWindowSizeClass(LocalContext.current as Activity)
+
+    val contentType = when (windowSize.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> MovieContentType.LIST_ONLY
+        WindowWidthSizeClass.Medium -> MovieContentType.LIST_ONLY
+        WindowWidthSizeClass.Expanded -> MovieContentType.LIST_AND_DETAIL
+        else -> MovieContentType.LIST_ONLY
+    }
+
+
+    when (moviesUiState) {
+        is MoviesUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+        is MoviesUiState.Error -> ErrorScreen(retryAction = {}, modifier = modifier.fillMaxSize())
+        is MoviesUiState.Success -> {
+            val photos = moviesUiState.photos
+            if (contentType == MovieContentType.LIST_AND_DETAIL) {
+                // Show both list and detail views
+                MoviesPhotoListAndDetail(
+                    photo = photos,
+                    selectedMovie = uiState.currentMovie?:photos[0],
+                    onClick = {viewModel.updateCurrentMovie(it)},
+                    modifier = modifier.fillMaxSize()
+                )
+            } else {
+                // Show only the list view
+                if (uiState.isShowingListPage) {
+                    MoviesList(
+                        photos = photos,
+                        onClick = { photo ->
+                            viewModel.updateCurrentMovie(photo)
+                            viewModel.navigateToDetailsPage()                         },
+                        modifier = modifier.fillMaxSize()
+                    )
+                } else {
+                    MoviesPhotoDetailScreen(
+                        selectedMovie = uiState.currentMovie!!,
+                        onBackPressed = { })
+        }
+    }
+        }}}
 
 
 
@@ -189,9 +245,10 @@ fun MoviesPhotoDetailScreen(
 fun MoviesPhotoCard(photo: MoviesPhoto, onItemClick:(MoviesPhoto) ->Unit, modifier: Modifier = Modifier) {
     Card(
         elevation = cardElevation(defaultElevation = 4.dp),
-        modifier = modifier.padding(top = 8.dp)
+        modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp),
+            .height(180.dp)
+            .padding(top = 8.dp),
         onClick = { onItemClick(photo) }
     ) {
         Row(modifier = modifier.fillMaxWidth(),
@@ -262,7 +319,7 @@ fun MoviesPhotoListAndDetail(
     Row(modifier = modifier){
         MoviesList(
             photos = photo,
-            onClick = onClick,
+            onClick = {},
             modifier = Modifier.weight(2f)
                 .padding(start = 16.dp, end = 16.dp)
         )
@@ -357,5 +414,40 @@ fun MoviesPhotoDetailScreenPreview() {
 
     MovieBuffsTheme {
         MoviesPhotoDetailScreen(selectedMovie = mockData, onBackPressed = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MoviesListAndDetailPreview() {
+    val mockData = listOf(
+        MoviesPhoto(
+            poster = "android.resource://app/drawable/poster1",
+            title = "Movie 1",
+            description = "Description for movie 1.",
+            releaseDate = "Jan 1, 2024",
+            contentRating = "PG",
+            reviewScore = "7.5",
+            bigImage = "big_image_1",
+            length = "1h 30m"
+        ),
+        MoviesPhoto(
+            poster = "android.resource://app/drawable/poster2",
+            title = "Movie 2",
+            description = "Description for movie 2.",
+            releaseDate = "Feb 1, 2024",
+            contentRating = "PG-13",
+            reviewScore = "8.2",
+            bigImage = "big_image_2",
+            length = "1h 45m"
+        )
+    )
+
+    MovieBuffsTheme {
+        MoviesPhotoListAndDetail(
+            photo = mockData,
+            selectedMovie = mockData[0], // Default to the first movie for the detail view
+            onClick = {}
+        )
     }
 }

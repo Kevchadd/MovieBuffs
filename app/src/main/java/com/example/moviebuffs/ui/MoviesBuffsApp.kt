@@ -34,21 +34,6 @@ fun MoviesBuffsApp(
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    val contentType : MovieContentType
-    when (windowSize) {
-        WindowWidthSizeClass.Compact -> {
-          contentType = MovieContentType.LIST_ONLY
-        }
-        WindowWidthSizeClass.Medium -> {
-            contentType = MovieContentType.LIST_ONLY
-        }
-        WindowWidthSizeClass.Expanded -> {
-            contentType = MovieContentType.LIST_AND_DETAIL
-        }
-        else -> {
-            contentType = MovieContentType.LIST_ONLY
-        }
-    }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -63,46 +48,21 @@ fun MoviesBuffsApp(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            val moviesViewModel: MoviesViewModel = viewModel()
-            if(contentType == MovieContentType.LIST_AND_DETAIL) {
-
-
-                val photos = (viewModel.moviesUiState as? MoviesUiState.Success)?.photos ?: emptyList()
-                if (photos.isNotEmpty()) {
-                MoviesPhotoListAndDetail(
-                    photo = photos,
-                 onClick = {
-                     viewModel.updateCurrentMovie(it)
-                 },
-                    selectedMovie = uiState.currentMovie?:photos[0],
-                    modifier = Modifier.fillMaxSize()
-
-                )}
-
-
-            }else {
-                if (uiState.isShowingListPage) {
-                    HomeScreen(
-                        onClick = {
-                            viewModel.updateCurrentMovie(it)
-                            viewModel.navigateToDetailsPage()
-                        },
-                        moviesUiState = moviesViewModel.moviesUiState,
-                        retryAction = moviesViewModel::getMoviesPhotos
-                    )
-                } else {
-                    MoviesPhotoDetailScreen(
-                        selectedMovie = uiState.currentMovie!!,
-                        onBackPressed = {
-                            viewModel.navigateToListPage()
-                        }
-                    )
-
-                }
-            }
+            HomeScreen(
+                onClick = {
+                    viewModel.updateCurrentMovie(it)
+                    viewModel.navigateToDetailsPage()
+                },
+                moviesUiState = viewModel.moviesUiState,
+                retryAction = viewModel::getMoviesPhotos
+            )
         }
     }
 }
+
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
