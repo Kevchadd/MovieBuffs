@@ -86,12 +86,12 @@ fun MoviesApp(
         else -> MovieContentType.LIST_ONLY
     }
 
-    // Check if the state is Success and retrieve photos
+
     if (moviesUiState is MoviesUiState.Success) {
         val photos = moviesUiState.photos
 
         if (contentType == MovieContentType.LIST_AND_DETAIL) {
-            // Show both list and detail views
+
             MoviesPhotoListAndDetail(
                 photo = photos,
                 selectedMovie = uiState.currentMovie ?: photos[0],
@@ -99,7 +99,7 @@ fun MoviesApp(
                 modifier = modifier.fillMaxSize()
             )
         } else {
-            // Show only the list view
+
             if (uiState.isShowingListPage) {
                 MoviesList(
                     photos = photos,
